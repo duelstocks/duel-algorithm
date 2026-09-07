@@ -184,9 +184,11 @@ async def async_http_get(session, url, timeout=30):
     try:
         async with session.get(url, headers=SEC_HEADERS, timeout=aiohttp.ClientTimeout(total=timeout)) as response:
             if response.status != 200:
+                print(f"  HTTP {response.status} for {url}")
                 return None
             return await response.text()
-    except Exception:
+    except Exception as e:
+        print(f"  ERROR fetching {url}: {type(e).__name__}: {e}")
         return None
 
 
