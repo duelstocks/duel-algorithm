@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NVDA vs AMD — Example Duel (SEC Data) | DUEL Algorithm</title>
+<meta name="description" content="A worked example of the DUEL 8-factor relative comparison algorithm, using real SEC EDGAR figures for NVIDIA and AMD. Static snapshot — for a live, current comparison of any two stocks, visit duelstocks.com.">
+<link rel="stylesheet" href="../style.css">
+<meta property="og:title" content="NVDA vs AMD — Example Duel">
+<meta property="og:description" content="Worked example of the open-source DUEL scoring algorithm using real SEC EDGAR data.">
+<meta property="og:type" content="article">
+</head>
+<body>
+<header class="site-header">
+  <a href="../index.html" class="brand">DUEL — Open Algorithm</a>
+  <a href="https://duelstocks.com" class="cta">Run a live duel on duelstocks.com &rarr;</a>
+</header>
+
+<main>
+  <h1>NVDA vs AMD</h1>
+  <p class="subtitle">Worked example of the DUEL relative-fundamentals algorithm &middot; SEC EDGAR data only</p>
+
+  <span class="static-badge">⚠ Static example — captured once, not auto-updated. For a current, live comparison of any two stocks, use the calculator on duelstocks.com.</span>
+
+  <div class="score-board">
+    <div class="score"><span class="ticker">AMD</span><span class="score-num">20</span></div>
+    <div class="vs">VS</div>
+    <div class="score winner"><span class="ticker">NVDA</span><span class="score-num">80</span></div>
+  </div>
+  <p class="verdict"><strong>NVDA</strong> wins (dominant, gap of 60 points) based on the weighted 8-factor model below.</p>
+
+  <table class="factor-table">
+    <thead>
+      <tr><th>Factor</th><th>AMD</th><th>NVDA</th><th>Weight</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Revenue Growth (3Y CAGR)</td><td>13.64%</td><td class="better">100.05%</td><td>16%</td></tr>
+      <tr><td>Operating Cash Flow Margin</td><td>22.26%</td><td class="better">47.57%</td><td>15%</td></tr>
+      <tr><td>Return on Invested Capital</td><td>4.24%</td><td class="better">40.59%</td><td>15%</td></tr>
+      <tr><td>Sloan Ratio (lower is better)</td><td class="better">1.64%</td><td>15.74%</td><td>12%</td></tr>
+      <tr><td>Asset Turnover</td><td>0.41x</td><td class="better">0.67x</td><td>10%</td></tr>
+      <tr><td>Receivables Turnover</td><td class="better">4.76x</td><td>3.42x</td><td>8%</td></tr>
+      <tr><td>Operating Margin</td><td>10.66%</td><td class="better">60.38%</td><td>12%</td></tr>
+      <tr><td>Free Cash Flow Margin</td><td>19.44%</td><td class="better">47.50%</td><td>12%</td></tr>
+    </tbody>
+  </table>
+
+  <section class="pro-box">
+    <h2>How this was calculated</h2>
+    <p>Every figure above is derived directly from each company's SEC EDGAR filings — no analyst estimates. AMD's report is dated 2026-06-27; NVDA's is dated 2026-07-26 (most recent filing available for each company at the time this snapshot was taken). The exact formulas (e.g. Revenue Growth = (Revenue&#8320; / Revenue&#8323;y)^(1/3) &minus; 1) are open-source in the <a href="https://github.com/duelstocks">GitHub repository</a> alongside the SEC data-fetching code, so you can verify every number yourself.</p>
+    <p>This is one static snapshot, not a live feed. Company fundamentals change every quarter as new 10-K/10-Q filings are released. To compare NVDA vs AMD — or any two US-listed stocks — with current data, custom factor weights, and PDF export, use the free calculator on the main site.</p>
+    <a class="cta-large" href="https://duelstocks.com">Run a live duel on duelstocks.com &rarr;</a>
+  </section>
+
+  <h2>What PRO subscribers get for this same duel</h2>
+  <p class="subtitle" style="margin-bottom:16px;">The base 8-factor duel above is free and open-source. DUEL PRO on duelstocks.com goes two layers deeper on every duel — here's a preview of the headline output, not the method.</p>
+
+  <div class="preview-grid">
+    <div class="preview-card">
+      <span class="lock-badge">🔒 PRO &middot; Resilience Report</span>
+      <h3>Fundamental Resilience Index (FRI)</h3>
+      <div class="preview-stat-row"><span class="label">AMD</span><span class="val">100 — High Resilience</span></div>
+      <div class="preview-stat-row"><span class="label">NVDA</span><span class="val">56 — Moderate</span></div>
+      <p class="preview-insight">Despite winning the duel 80–20, NVDA's Resilience Report flags an internal conflict between its ROIC and Sloan Ratio — a signal the headline score alone doesn't show. AMD passes all consistency checks.</p>
+      <p class="preview-blur-note">Full breakdown (cash-to-debt coverage, investment self-sufficiency, earnings quality, liquidity runway, conflict matrix) is PRO-only.</p>
+      <a class="preview-cta" href="https://duelstocks.com">Unlock Resilience Report &rarr;</a>
+    </div>
+
+    <div class="preview-card">
+      <span class="lock-badge">🔒 PRO &middot; DCF Valuation</span>
+      <h3>3-Year Fair Value Projection</h3>
+      <div class="preview-stat-row"><span class="label">AMD (T0 &rarr; +3Y)</span><span class="val">$67.22 &rarr; $83.46</span></div>
+      <div class="preview-stat-row"><span class="label">NVDA (T0 &rarr; +3Y)</span><span class="val">$181.74 &rarr; $206.48</span></div>
+      <p class="preview-insight">Full company-specific discounted cash flow model — individual WACC, growth-quality adjustments, and terminal value — for both companies, not a generic multiple.</p>
+      <p class="preview-blur-note">Full model, per-year cash flow table, and downloadable PDF are PRO-only.</p>
+      <a class="preview-cta" href="https://duelstocks.com">Unlock DCF Report &rarr;</a>
+    </div>
+  </div>
+
+  <p class="disclaimer">Data source: SEC EDGAR (10-K / 10-Q filings). For informational and educational purposes only — not investment advice.</p>
+  <p class="updated">Snapshot captured: September 2026</p>
+</main>
+
+<footer class="site-footer">
+  <a href="https://duelstocks.com">duelstocks.com</a> &middot;
+  <a href="https://duelstocks.com/methodology">Methodology</a> &middot;
+  <a href="https://github.com/duelstocks">GitHub</a>
+</footer>
+</body>
+</html>
