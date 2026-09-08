@@ -2,14 +2,12 @@
 
 **Live product:** [duelstocks.com](https://duelstocks.com) — compare any two US-listed stocks head-to-head using only official SEC EDGAR data.
 
-This repository contains the **base 8-factor algorithm** that powers DUEL, plus a small set of example duels generated automatically from live SEC filings. It exists to show, transparently, exactly how the relative score is calculated — no black box.
+This repository contains the **base 8-factor algorithm** that powers DUEL, plus one fully worked example (NVDA vs AMD) using real SEC EDGAR figures. It exists to show, transparently, exactly how the free relative score is calculated — no black box.
 
 ## What's here
 
-- `scripts/duel_engine.py` — the scoring algorithm (`normalize_pair`, `compute_duel`) and the SEC EDGAR XBRL fetcher used to derive the 8 factors from 10-K / 10-Q filings.
-- `scripts/generate_duels.py` — generates static HTML pages for a fixed set of example pairs.
-- `docs/` — the generated GitHub Pages site.
-- `.github/workflows/update-duels.yml` — refreshes the example duels monthly from live data.
+- [`scripts/duel_engine.py`](scripts/duel_engine.py) — the scoring algorithm (`normalize_pair`, `compute_duel`) and the SEC EDGAR XBRL fetcher used to derive the 8 factors from 10-K / 10-Q filings.
+- [`docs/duels/nvda-vs-amd.html`](docs/duels/nvda-vs-amd.html) — a full worked example, including a preview of what PRO subscribers get for the same duel.
 
 ## The 8 factors
 
@@ -24,33 +22,21 @@ This repository contains the **base 8-factor algorithm** that powers DUEL, plus 
 | Asset Turnover | 10% |
 | Receivables Turnover | 8% |
 
-Each factor is min-max normalized between the two companies being compared (so scores are **relative to the opponent**, not an absolute rating), then combined using the weights above.
+Each factor is min-max normalized between the two companies being compared (so scores are **relative to the opponent**, not an absolute rating), then combined using the weights above. See [`duel_engine.py`](scripts/duel_engine.py) for the exact code.
 
 ## What's intentionally *not* here
 
-This repo reproduces only the free base comparison. The following remain PRO features on [duelstocks.com](https://duelstocks.com), not open-sourced here:
+This repo open-sources only the free base comparison. The following are deliberately **not** published — they're proprietary methodology, not just a locked feature:
 
-- Custom factor weights
-- Unlimited daily duels (free tier is 5/day on the site)
-- PDF Battle Report export
-- DCF Valuation
-- Resilience Report (STR)
+- Custom factor weights and unlimited daily duels (free tier is 5/day on the site)
+- **Resilience (STR) Report** — a fundamental-resilience scoring model with its own metrics and conflict-detection logic
+- **DCF Valuation Report** — a multi-factor discounted cash flow model with company-specific WACC and growth-quality adjustments
 
-## Example duels
+You can see a preview of both reports' *output* (not their method) in the [worked example](docs/duels/nvda-vs-amd.html).
 
-See the generated site: [duels index](docs/index.html) (or the live GitHub Pages URL once enabled).
+## A note on updates
 
-Current showcase pairs: `NVDA vs AMD`, `MSFT vs GOOGL`, `AVGO vs PLTR`, `AAPL vs META`, `AMZN vs TSLA`.
-
-## Running it yourself
-
-```bash
-pip install -r requirements.txt
-cd scripts
-python generate_duels.py
-```
-
-Requires outbound access to `sec.gov` / `data.sec.gov`.
+This is a **static, hand-verified snapshot**, not an automated feed. (We initially tried automating it via GitHub Actions, but SEC EDGAR blocks requests from major cloud-provider IP ranges including GitHub's runners — so for now this repo is updated manually and occasionally, not on a schedule.) For current, live data on any pair of stocks, use [duelstocks.com](https://duelstocks.com).
 
 ## Disclaimer
 
@@ -58,4 +44,4 @@ For informational and educational purposes only. Not investment advice. Data com
 
 ## License
 
-See [LICENSE](LICENSE).
+See [LICENSE](LICENSE) — AGPLv3.
