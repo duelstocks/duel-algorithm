@@ -22,7 +22,13 @@ This repository contains the **base 8-factor algorithm** that powers DUEL, plus 
 | Asset Turnover | 10% |
 | Receivables Turnover | 8% |
 
-Each factor is scored by the **magnitude of the gap** between the two companies, not just who's ahead — a narrow gap stays close to a draw, and only a genuinely wide gap approaches a full win:
+The overall score is:
+
+```
+DUEL Score = Σ ( Wᵢ × Nᵢ ) × 100
+```
+
+Where **Wᵢ** is the factor's weight (sum = 1.0) and **Nᵢ** is that factor's soft relative score — scored by the **magnitude of the gap** between the two companies, not just who's ahead. A narrow gap stays close to a draw, and only a genuinely wide gap approaches a full win:
 
 ```
 t = (a − b) / (|a| + |b|)
@@ -30,7 +36,7 @@ N_a = 0.5 + 0.5·t
 N_b = 0.5 − 0.5·t
 ```
 
-The per-factor scores are then combined using the weights above. (Before September 2026, this used a pure min-max normalization instead, which could swing all the way to a 100/0 split even for a modest gap — the current version is a more honest reflection of *how much* stronger one company is, not just *that* it's stronger.) See [`duel_engine.py`](scripts/duel_engine.py) for the exact code.
+(Before September 2026, Nᵢ used a pure min-max normalization instead, which could swing all the way to a 100/0 split even for a modest gap — the current version is a more honest reflection of *how much* stronger one company is, not just *that* it's stronger. The top-level `Score = Σ(Wᵢ×Nᵢ)×100` formula itself is unchanged.) See [`duel_engine.py`](scripts/duel_engine.py) for the exact code.
 
 ## What's intentionally *not* here
 
