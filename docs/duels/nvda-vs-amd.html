@@ -21,12 +21,14 @@
 
   <span class="static-badge">⚠ Static example — captured once, not auto-updated. For a current, live comparison of any two stocks, use the calculator on duelstocks.com.</span>
 
+  <p class="subtitle" style="margin-top:-8px;">Updated September 2026: the scoring formula was improved from pure min-max normalization to a magnitude-aware model — a narrow gap between two companies now stays close to a draw, instead of one side taking the full 100/0 split. See "How this was calculated" below.</p>
+
   <div class="score-board">
-    <div class="score"><span class="ticker">AMD</span><span class="score-num">20</span></div>
+    <div class="score"><span class="ticker">AMD</span><span class="score-num">33</span></div>
     <div class="vs">VS</div>
-    <div class="score winner"><span class="ticker">NVDA</span><span class="score-num">80</span></div>
+    <div class="score winner"><span class="ticker">NVDA</span><span class="score-num">67</span></div>
   </div>
-  <p class="verdict"><strong>NVDA</strong> wins (dominant, gap of 60 points) based on the weighted 8-factor model below.</p>
+  <p class="verdict"><strong>NVDA</strong> wins (dominant, gap of 34 points) based on the weighted 8-factor model below.</p>
 
   <table class="factor-table">
     <thead>
@@ -46,7 +48,8 @@
 
   <section class="pro-box">
     <h2>How this was calculated</h2>
-    <p>Every figure above is derived directly from each company's SEC EDGAR filings — no analyst estimates. AMD's report is dated 2026-06-27; NVDA's is dated 2026-07-26 (most recent filing available for each company at the time this snapshot was taken). The exact formulas (e.g. Revenue Growth = (Revenue&#8320; / Revenue&#8323;y)^(1/3) &minus; 1) are open-source in the <a href="https://github.com/duelstocks">GitHub repository</a> alongside the SEC data-fetching code, so you can verify every number yourself.</p>
+    <p>Every figure above is derived directly from each company's SEC EDGAR filings — no analyst estimates. AMD's report is dated 2026-06-27; NVDA's is dated 2026-07-26 (most recent filing available for each company at the time this snapshot was taken).</p>
+    <p>Each factor is scored with <code>t = (a &minus; b) / (|a| + |b|)</code>, then <code>N_a = 0.5 + 0.5&middot;t</code>, <code>N_b = 0.5 &minus; 0.5&middot;t</code> — a narrow gap between two companies stays close to a draw, and only a genuinely wide gap approaches a full win. This replaced an earlier min-max version that could swing all the way to 100/0 even for a modest gap. The exact code (<code>normalize_pair</code>, <code>compute_duel</code>) is open-source in the <a href="https://github.com/duelstocks">GitHub repository</a> alongside the SEC data-fetching code, so you can verify every number yourself.</p>
     <p>This is one static snapshot, not a live feed. Company fundamentals change every quarter as new 10-K/10-Q filings are released. To compare NVDA vs AMD — or any two US-listed stocks — with current data, custom factor weights, and PDF export, use the free calculator on the main site.</p>
     <a class="cta-large" href="https://duelstocks.com">Run a live duel on duelstocks.com &rarr;</a>
   </section>
@@ -60,7 +63,7 @@
       <h3>Fundamental Resilience Index (FRI)</h3>
       <div class="preview-stat-row"><span class="label">AMD</span><span class="val">100 — High Resilience</span></div>
       <div class="preview-stat-row"><span class="label">NVDA</span><span class="val">56 — Moderate</span></div>
-      <p class="preview-insight">Despite winning the duel 80–20, NVDA's Resilience Report flags an internal conflict between its ROIC and Sloan Ratio — a signal the headline score alone doesn't show. AMD passes all consistency checks.</p>
+      <p class="preview-insight">Despite winning the duel 67–33, NVDA's Resilience Report flags an internal conflict between its ROIC and Sloan Ratio — a signal the headline score alone doesn't show. AMD passes all consistency checks.</p>
       <p class="preview-blur-note">Full breakdown (cash-to-debt coverage, investment self-sufficiency, earnings quality, liquidity runway, conflict matrix) is PRO-only.</p>
       <a class="preview-cta" href="https://duelstocks.com">Unlock Resilience Report &rarr;</a>
     </div>
