@@ -49,6 +49,25 @@ FACTOR_LABELS = {
 
 
 def normalize_pair(a_val, b_val, inverted=False):
+    """
+    Soft relative score for one factor (updated Sept 2026).
+
+    Previous version: pure min-max normalization between the two values,
+    which could push a factor all the way to a 100/0 split even for a
+    modest gap between two companies.
+
+    Current version: the MAGNITUDE of the gap matters, not just who's
+    ahead. A narrow gap stays close to a draw (0.5/0.5); only a genuinely
+    wide gap approaches a full win. This better reflects "how much
+    stronger", not just "who's stronger".
+
+    - Missing data: 0.35 / 0.65 (unchanged).
+    - Equal values: 0.5 / 0.5.
+    - Otherwise:
+        t = (a - b) / (|a| + |b| + eps)   ∈ (-1, 1)
+        N_a = 0.5 + 0.5*t ,  N_b = 0.5 - 0.5*t
+    Sloan (inverted): compare -a vs -b so lower Sloan is better.
+    """
     if a_val is None and b_val is None:
         return 0.5, 0.5
     if a_val is None:
@@ -58,17 +77,15 @@ def normalize_pair(a_val, b_val, inverted=False):
     if a_val == b_val:
         return 0.5, 0.5
 
-    lo, hi = min(a_val, b_val), max(a_val, b_val)
-    spread = hi - lo
-    if spread == 0:
-        return 0.5, 0.5
-
-    an = (a_val - lo) / spread
-    bn = (b_val - lo) / spread
-
+    aa, bb = a_val, b_val
     if inverted:
-        return 1 - an, 1 - bn
-    return an, bn
+        aa, bb = -a_val, -b_val
+
+    denom = abs(aa) + abs(bb) + 1e-9
+    t = (aa - bb) / denom
+    sa = 0.5 + 0.5 * t
+    sb = 0.5 - 0.5 * t
+    return sa, sb
 
 
 def compute_duel(data_a, data_b, weights=None):
@@ -106,9 +123,11 @@ def compute_duel(data_a, data_b, weights=None):
     winner = data_a['ticker'] if score_a >= score_b else data_b['ticker']
     gap = abs(score_a - score_b)
 
-    if gap >= 20:
+    # Soft scoring rarely produces extreme 0-100 gaps, so thresholds
+    # are scaled to the typical gap distribution of the new formula.
+    if gap >= 18:
         strength = 'dominant'
-    elif gap >= 12:
+    elif gap >= 10:
         strength = 'clear'
     elif gap >= 5:
         strength = 'moderate'
