@@ -21,35 +21,59 @@
 
   <span class="static-badge">⚠ Static example — captured once, not auto-updated. For a current, live comparison of any two stocks, use the calculator on duelstocks.com.</span>
 
-  <p class="subtitle" style="margin-top:-8px;">Updated September 2026: the scoring formula was improved from pure min-max normalization to a magnitude-aware model — a narrow gap between two companies now stays close to a draw, instead of one side taking the full 100/0 split. See "How this was calculated" below.</p>
+  <p class="subtitle" style="margin-top:-8px;">Updated September 2026: the model moved from 8 flat factors to 8 factors organized under 5 signal blocks, with Receivables Turnover replaced by Debt / Equity, retuned default weights, and new informational consistency flags. See "How this was calculated" below.</p>
 
   <div class="score-board">
-    <div class="score"><span class="ticker">AMD</span><span class="score-num">33</span></div>
+    <div class="score"><span class="ticker">AMD</span><span class="score-num">39</span></div>
     <div class="vs">VS</div>
-    <div class="score winner"><span class="ticker">NVDA</span><span class="score-num">67</span></div>
+    <div class="score winner"><span class="ticker">NVDA</span><span class="score-num">61</span></div>
   </div>
-  <p class="verdict"><strong>NVDA</strong> wins (dominant, gap of 34 points) based on the weighted 8-factor model below.</p>
+  <p class="verdict"><strong>NVDA</strong> wins (dominant, gap of 22 points) based on the weighted 8-factor model below.</p>
 
   <table class="factor-table">
     <thead>
       <tr><th>Factor</th><th>AMD</th><th>NVDA</th><th>Weight</th></tr>
     </thead>
     <tbody>
-      <tr><td>Revenue Growth (3Y CAGR)</td><td>13.64%</td><td class="better">100.05%</td><td>16%</td></tr>
-      <tr><td>Operating Cash Flow Margin</td><td>22.26%</td><td class="better">47.57%</td><td>15%</td></tr>
-      <tr><td>Return on Invested Capital</td><td>4.24%</td><td class="better">40.59%</td><td>15%</td></tr>
-      <tr><td>Sloan Ratio (lower is better)</td><td class="better">1.64%</td><td>15.74%</td><td>12%</td></tr>
-      <tr><td>Asset Turnover</td><td>0.41x</td><td class="better">0.67x</td><td>10%</td></tr>
-      <tr><td>Receivables Turnover</td><td class="better">4.76x</td><td>3.42x</td><td>8%</td></tr>
-      <tr><td>Operating Margin</td><td>10.66%</td><td class="better">60.38%</td><td>12%</td></tr>
-      <tr><td>Free Cash Flow Margin</td><td>19.44%</td><td class="better">47.50%</td><td>12%</td></tr>
+      <tr><td colspan="4" style="text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;padding-top:14px;">Growth</td></tr>
+      <tr><td>Revenue Growth (3Y CAGR)</td><td>13.64%</td><td class="better">100.05%</td><td>18%</td></tr>
+      <tr><td colspan="4" style="text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;padding-top:14px;">Margin Conversion</td></tr>
+      <tr><td>Operating Margin</td><td>10.66%</td><td class="better">60.38%</td><td>9%</td></tr>
+      <tr><td>Operating Cash Flow Margin</td><td>22.26%</td><td class="better">47.57%</td><td>9%</td></tr>
+      <tr><td>Free Cash Flow Margin</td><td>19.44%</td><td class="better">47.50%</td><td>9%</td></tr>
+      <tr><td colspan="4" style="text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;padding-top:14px;">Capital Efficiency</td></tr>
+      <tr><td>Return on Invested Capital</td><td>4.24%</td><td class="better">40.59%</td><td>17%</td></tr>
+      <tr><td>Asset Turnover</td><td>0.41x</td><td class="better">0.67x</td><td>7%</td></tr>
+      <tr><td colspan="4" style="text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;padding-top:14px;">Accrual Quality</td></tr>
+      <tr><td>Sloan Ratio (lower is better)</td><td class="better">1.64%</td><td>15.74%</td><td>17%</td></tr>
+      <tr><td colspan="4" style="text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;padding-top:14px;">Financial Strength</td></tr>
+      <tr><td>Debt / Equity (lower is better)</td><td class="better">0.05x</td><td>0.15x</td><td>14%</td></tr>
     </tbody>
   </table>
 
   <section class="pro-box">
     <h2>How this was calculated</h2>
     <p>Every figure above is derived directly from each company's SEC EDGAR filings — no analyst estimates. AMD's report is dated 2026-06-27; NVDA's is dated 2026-07-26 (most recent filing available for each company at the time this snapshot was taken).</p>
-    <p>The overall score is <code>DUEL Score = &Sigma; ( Wᵢ &times; Nᵢ ) &times; 100</code>, where <strong>Wᵢ</strong> is each factor's weight (sum = 1.0, see the table above) and <strong>Nᵢ</strong> is that factor's soft relative score: <code>t = (a &minus; b) / (|a| + |b|)</code>, then <code>N_a = 0.5 + 0.5&middot;t</code>, <code>N_b = 0.5 &minus; 0.5&middot;t</code> — a narrow gap between two companies stays close to a draw, and only a genuinely wide gap approaches a full win. This replaced an earlier min-max version of Nᵢ that could swing all the way to 100/0 even for a modest gap; the top-level Score formula itself is unchanged. The exact code (<code>normalize_pair</code>, <code>compute_duel</code>) is open-source in the <a href="https://github.com/duelstocks">GitHub repository</a> alongside the SEC data-fetching code, so you can verify every number yourself.</p>
+    <p>The overall score is <code>DUEL Score = &Sigma; ( Wᵢ &times; Nᵢ ) &times; 100</code>, where <strong>Wᵢ</strong> is each factor's weight (sum = 1.0, see the table above) and <strong>Nᵢ</strong> is that factor's soft relative score: <code>t = (a &minus; b) / (|a| + |b|)</code>, then <code>N_a = 0.5 + 0.5&middot;t</code>, <code>N_b = 0.5 &minus; 0.5&middot;t</code> — a narrow gap between two companies stays close to a draw, and only a genuinely wide gap approaches a full win. This scoring formula itself is unchanged since the last update; what changed this time is the factor set and weights (see below).</p>
+    <p><strong>Debt / Equity</strong> = (Short-Term Debt + Long-Term Debt) / Stockholders' Equity, inverted (lower is better) — it replaces Receivables Turnover, which is no longer part of the model. When book equity is zero or negative (e.g. from large buybacks), Debt/Equity is undefined rather than misleadingly low — shown as a dash, scored with the same missing-data rule as any other absent factor. The exact code (<code>normalize_pair</code>, <code>compute_duel</code>, <code>check_consistency_flags</code>) is open-source in the <a href="https://github.com/duelstocks">GitHub repository</a> alongside the SEC data-fetching code, so you can verify every number yourself.</p>
+  </section>
+
+  <section class="pro-box">
+    <h2>Consistency flags (informational only)</h2>
+    <p class="subtitle" style="margin-bottom:12px;">After every duel, DUEL runs four checks per company. These never change the score — they just surface tension between factors that a single headline number can hide.</p>
+    <table class="factor-table">
+      <thead><tr><th>Flag</th><th>Trigger</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>Paper profits</td><td>Op. Cash Margin &lt; Operating Margin &times; 0.7</td><td>Reported profit is running well ahead of cash — accruals or aggressive revenue recognition may be inflating the income statement.</td></tr>
+        <tr><td>CapEx vacuum</td><td>FCF Margin &lt; Op. Cash Margin &times; 0.3</td><td>Solid operating cash, but almost all of it is absorbed by CapEx — little free cash left for dividends, buybacks, or debt reduction.</td></tr>
+        <tr><td>No safety cushion</td><td>FCF Margin &lt; 0 and Debt/Equity &gt; 1.5</td><td>Meaningful leverage combined with negative free cash flow — raises risk of cash shortfalls or dilutive refinancing.</td></tr>
+        <tr><td>Non-positive equity</td><td>Book equity &le; 0</td><td>Debt/Equity is not economically meaningful; treat the capital structure with extra caution rather than reading the dash as "no debt".</td></tr>
+      </tbody>
+    </table>
+    <p class="disclaimer" style="margin-top:14px;">For this specific pair, neither AMD nor NVDA triggers any of the four flags.</p>
+  </section>
+
+  <section class="pro-box">
     <p>This is one static snapshot, not a live feed. Company fundamentals change every quarter as new 10-K/10-Q filings are released. To compare NVDA vs AMD — or any two US-listed stocks — with current data, custom factor weights, and PDF export, use the free calculator on the main site.</p>
     <a class="cta-large" href="https://duelstocks.com">Run a live duel on duelstocks.com &rarr;</a>
   </section>
@@ -63,7 +87,7 @@
       <h3>Fundamental Resilience Index (FRI)</h3>
       <div class="preview-stat-row"><span class="label">AMD</span><span class="val">100 — High Resilience</span></div>
       <div class="preview-stat-row"><span class="label">NVDA</span><span class="val">56 — Moderate</span></div>
-      <p class="preview-insight">Despite winning the duel 67–33, NVDA's Resilience Report flags an internal conflict between its ROIC and Sloan Ratio — a signal the headline score alone doesn't show. AMD passes all consistency checks.</p>
+      <p class="preview-insight">Despite winning the duel 61–39, NVDA's Resilience Report flags an internal conflict between its ROIC and Sloan Ratio — a signal the headline score alone doesn't show. AMD passes all consistency checks.</p>
       <p class="preview-blur-note">Full breakdown (cash-to-debt coverage, investment self-sufficiency, earnings quality, liquidity runway, conflict matrix) is PRO-only.</p>
       <a class="preview-cta" href="https://duelstocks.com">Unlock Resilience Report &rarr;</a>
     </div>
@@ -80,7 +104,7 @@
   </div>
 
   <p class="disclaimer">Data source: SEC EDGAR (10-K / 10-Q filings). For informational and educational purposes only — not investment advice.</p>
-  <p class="updated">Snapshot captured: September 2026</p>
+  <p class="updated">Snapshot captured: September 2026 (algorithm updated)</p>
 </main>
 
 <footer class="site-footer">
