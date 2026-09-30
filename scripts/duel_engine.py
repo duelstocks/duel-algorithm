@@ -24,27 +24,37 @@ import aiohttp
 # ════════════════════════════════════════════════════════════
 
 DEFAULT_WEIGHTS = {
-    'revenue_growth':   0.16,
-    'op_cash_margin':   0.15,
-    'roic':             0.15,
-    'sloan_ratio':      0.12,
-    'asset_turnover':   0.10,
-    'recv_turnover':    0.08,
-    'operating_margin': 0.12,
-    'fcf_margin':       0.12,
+    'revenue_growth':   0.18,
+    'operating_margin': 0.09,
+    'op_cash_margin':   0.09,
+    'fcf_margin':       0.09,
+    'roic':             0.17,
+    'asset_turnover':   0.07,
+    'sloan_ratio':      0.17,
+    'debt_equity':      0.14,
 }
 
-INVERTED = {'sloan_ratio'}
+INVERTED = {'sloan_ratio', 'debt_equity'}
+
+# Organizational grouping (updated Sept 2026) — 8 factors under 5 PCA-informed
+# signal blocks. Purely descriptive; does not change the math.
+FACTOR_GROUPS = {
+    'GROWTH':              ['revenue_growth'],
+    'MARGIN CONVERSION':   ['operating_margin', 'op_cash_margin', 'fcf_margin'],
+    'CAPITAL EFFICIENCY':  ['roic', 'asset_turnover'],
+    'ACCRUAL QUALITY':     ['sloan_ratio'],
+    'FINANCIAL STRENGTH':  ['debt_equity'],
+}
 
 FACTOR_LABELS = {
     'revenue_growth':   'Revenue Growth (3Y CAGR)',
-    'op_cash_margin':   'Operating Cash Flow Margin',
-    'roic':             'Return on Invested Capital',
-    'sloan_ratio':      'Sloan Ratio (lower is better)',
-    'asset_turnover':   'Asset Turnover',
-    'recv_turnover':    'Receivables Turnover',
     'operating_margin': 'Operating Margin',
+    'op_cash_margin':   'Operating Cash Flow Margin',
     'fcf_margin':       'Free Cash Flow Margin',
+    'roic':             'Return on Invested Capital',
+    'asset_turnover':   'Asset Turnover',
+    'sloan_ratio':      'Sloan Ratio (lower is better)',
+    'debt_equity':      'Debt / Equity (lower is better)',
 }
 
 
@@ -142,6 +152,62 @@ def compute_duel(data_a, data_b, weights=None):
         'gap': gap,
         'factors': factors,
     }
+
+
+def check_consistency_flags(data):
+    """
+    Informational-only checks (updated Sept 2026), one company at a time.
+    These do NOT affect the duel score — they just surface internal
+    tension between factors that a headline score can hide.
+
+    Ported 1:1 from the same checks that already run client-side on
+    duelstocks.com (visible via "View Page Source" today), so publishing
+    them here does not expose anything not already public.
+
+    Returns a list of {key, message, risk} dicts.
+    """
+    om = data.get('operating_margin')
+    ocm = data.get('op_cash_margin')
+    fcf = data.get('fcf_margin')
+    de = data.get('debt_equity')
+    equity_nonpositive = data.get('equity_nonpositive', False)
+
+    flags = []
+
+    # Flag 4 — non-positive book equity (checked first: makes D/E meaningless)
+    if equity_nonpositive:
+        flags.append({
+            'key': 'non_positive_equity',
+            'message': 'Non-positive equity: book equity ≤ 0 — Debt/Equity not computed '
+                       '(often large buybacks or accumulated deficit); leverage signal is not a normal ratio',
+            'risk': True,
+        })
+
+    # Flag 1 — "paper profits": operating cash lagging way behind operating income
+    if om is not None and ocm is not None and ocm < om * 0.7:
+        flags.append({
+            'key': 'paper_profits',
+            'message': 'Paper profits: Op. Cash Margin < Operating Margin × 0.7',
+            'risk': False,
+        })
+
+    # Flag 2 — "CapEx vacuum": operating cash almost entirely absorbed by CapEx
+    if ocm is not None and fcf is not None and fcf < ocm * 0.3:
+        flags.append({
+            'key': 'capex_vacuum',
+            'message': 'CapEx vacuum: FCF Margin < Op. Cash Margin × 0.3',
+            'risk': False,
+        })
+
+    # Flag 3 — "no safety cushion": negative FCF plus meaningful leverage
+    if fcf is not None and de is not None and fcf < 0 and de > 1.5:
+        flags.append({
+            'key': 'no_safety_cushion',
+            'message': 'No safety cushion: FCF Margin < 0 and Debt/Equity > 1.5',
+            'risk': True,
+        })
+
+    return flags
 
 
 # ════════════════════════════════════════════════════════════
@@ -359,10 +425,6 @@ async def async_build_company_data(session, ticker):
     st_debt, *_ = await async_sec_get_fact(session, gaap, ['ShortTermBorrowings', 'DebtCurrent', 'ShortTermDebt'])
     cash, *_ = await async_sec_get_fact(session, gaap, ['CashAndCashEquivalentsAtCarryingValue', 'Cash', 'CashAndCashEquivalents'])
     op_income, *_ = await async_sec_get_fact(session, gaap, ['OperatingIncomeLoss', 'IncomeFromOperations'], prefer_annual=True)
-    receivables, *_ = await async_sec_get_fact(session, gaap, [
-        'AccountsReceivableNetCurrent', 'AccountsReceivableNet', 'AccountsReceivable',
-        'ReceivablesNetCurrent', 'TradeAndOtherReceivablesCurrent', 'AccountsReceivableGross'
-    ], prefer_annual=True)
     capex_direct, *_ = await async_sec_get_fact(session, gaap, [
         'CapitalExpenditures', 'PaymentsForCapitalExpenditures',
         'PurchaseOfPropertyPlantAndEquipment', 'PaymentsToAcquirePropertyPlantAndEquipment'
@@ -382,8 +444,19 @@ async def async_build_company_data(session, ticker):
     if net_income is not None and cfo is not None and total_assets and total_assets > 0:
         sloan_ratio = ((net_income - cfo - (cfi or 0)) / total_assets) * 100
 
+    # Debt / Equity (added Sept 2026, replaces Receivables Turnover).
+    # D/E is only meaningful when book equity is positive; zero/negative
+    # equity (e.g. from large buybacks) makes the ratio undefined, not zero.
+    debt_equity = None
+    equity_nonpositive = False
+    if equity is not None:
+        total_debt_de = (lt_debt or 0) + (st_debt or 0)
+        if equity > 0:
+            debt_equity = total_debt_de / equity
+        else:
+            equity_nonpositive = True
+
     asset_turnover = revenue / total_assets if revenue and total_assets and total_assets > 0 else None
-    recv_turnover = revenue / receivables if revenue and receivables and receivables > 0 else None
     operating_margin = (op_income / revenue) * 100 if op_income and revenue and revenue > 0 else None
     fcf_margin = ((cfo - capex) / revenue) * 100 if cfo is not None and capex is not None and revenue and revenue > 0 else None
 
@@ -396,7 +469,8 @@ async def async_build_company_data(session, ticker):
         'roic': safe_float(roic),
         'sloan_ratio': safe_float(sloan_ratio),
         'asset_turnover': safe_float(asset_turnover),
-        'recv_turnover': safe_float(recv_turnover),
+        'debt_equity': safe_float(debt_equity),
+        'equity_nonpositive': equity_nonpositive,
         'operating_margin': safe_float(operating_margin),
         'fcf_margin': safe_float(fcf_margin),
         'report_date': report_date,
